@@ -4,7 +4,7 @@ from virtualCube import *
 
 class Cube3D(tk.Canvas):
     colours = {"w": "#FFFFFF", "y": "#FFFF00", "r": "#FF0000",
-               "o": "#FF8C00", "g": "#00FF00", "b": "#0000FF"}
+               "o": "#FFA500", "g": "#00A000", "b": "#0000FF"}
     
     def __init__(self, parent, cube, *args, **kwargs):
         if "command" in kwargs.keys():
@@ -19,9 +19,6 @@ class Cube3D(tk.Canvas):
         tk.Canvas.__init__(self, *args, master=parent, **kwargs)
         self.cube = cube
 
-        self.phi = np.pi/4
-        self.theta = np.pi/4
-
         self.bind("<Configure>", self.draw)
         self.master.bind("<Left>", self.callback)
         self.master.bind("<Right>", self.callback)
@@ -31,8 +28,12 @@ class Cube3D(tk.Canvas):
         self.master.bind("<Button-1>", self.press)
         self.master.bind("<ButtonRelease-1>", self.release)
         self.master.bind("<B1-Motion>", self.drag)
+
+        self.ani = False
+        self.master.bind("<Control-a>", self.toggleAnimate)
+        self.master.bind("<Control-r>", self.resetView)
         
-        self.draw()
+        self.resetView()
 
     def press(self, event):
         self.click = True
@@ -223,17 +224,45 @@ class Cube3D(tk.Canvas):
                     self.create_polygon(points, outline="black", fill=colour,
                                         width=2)
 
+    def resetView(self, *args, **kwargs):
+        self.phi = np.pi/4
+        self.theta = np.pi/4
+        self.draw()
+
+    def toggleAnimate(self, *args, **kwargs):
+        self.ani = not self.ani
+        if self.ani:
+            self.animate()
+
+    def animate(self, *args, **kwargs):
+        if self.ani:
+            self.phi += np.pi/256
+            self.theta += np.pi/64
+
+            self.phi %= 2*np.pi
+            self.theta %= 2*np.pi
+            
+            self.draw()
+            
+            self.after(10, self.animate)
+
+# ----------------------------------- Test -----------------------------------
+
 if __name__ == "__main__":
-    def algorithm(self, *args, **kwargs):
-        alg = entry.get().upper()
-        if "RESET" in alg:
+    def algorithm(*args, **kwargs):
+        alg = entry.get()
+        algCopy = alg.upper()
+        if "RESET" in algCopy:
             cube.reset()
-        elif "SCRAMBLE" in alg:
+        elif "SCRAMBLE" in algCopy:
             cube.scramble()
         else:
-            cube.algorithm(alg)
+            try:
+                cube.algorithm(alg)
+            except AlgorithmError:
+                entry.delete(0, tk.END)
+                raise
         entry.delete(0, tk.END)
-        cube3D.draw()
 
     root = tk.Tk()
     root.title("3D Cube")
@@ -243,6 +272,7 @@ if __name__ == "__main__":
 
     cube = VirtualCube()
     cube3D = Cube3D(root, cube)
+    cube.config(command=cube3D.draw)
     cube3D.grid(row=0, column=0, sticky="nsew")
 
     entry = tk.Entry(root)

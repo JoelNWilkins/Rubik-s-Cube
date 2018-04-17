@@ -7,6 +7,7 @@ class AlgorithmError(Exception):
 
 class VirtualCube:
     def __init__(self, *args, **kwargs):
+        self.config(*args, **kwargs)
         self.reset()
 
     def __str__(self, *args, **kwargs):
@@ -30,10 +31,19 @@ class VirtualCube:
                      + "  "*3 + " ".join(self.tiles[0][1][0]) + "  "*3)
         return output
 
+    def config(self, *args, **kwargs):
+        if "command" in kwargs.keys():
+            self.command = kwargs.pop("command")
+        else:
+            self.command = None
+
     def reset(self, *args, **kwargs):
         self.colours = [["w", "y"], ["r", "o"], ["g", "b"]]
         self.tiles = list(map(lambda x: [[[x[0]]*3]*3, [[x[1]]*3]*3],
                               self.colours))
+
+        if self.command != None:
+            self.command()
 
     def scramble(self, *args, **kwargs):
         moves = ["U", "D", "F", "B", "L", "R"]
@@ -50,82 +60,100 @@ class VirtualCube:
             alg += move + var + " "
         self.algorithm(alg[0:len(alg)-1])
 
+        if self.command != None:
+            self.command()
+
     def _column(self, array, i):
         return list(map(lambda x: x[i], array))
 
     def algorithm(self, alg):
-        commands = alg.split(" ")
+        commands = alg.strip().split(" ")
         for command in commands:
             if command[0].upper() == "U":
-                if len(command) > 1:
+                if len(command) == 2:
                     if command[1] == "'":
                         turns = -1
                     elif command[1] == "2":
                         turns = 2
                     else:
                         raise AlgorithmError("{} is not a valid move".format(command))
-                else:
+                elif len(command) == 1:
                     turns = 1
-                self.up(turns)
+                else:
+                    raise AlgorithmError("{} is not a valid move".format(command))
+                self.up(turns, command=False)
             elif command[0].upper() == "D":
-                if len(command) > 1:
+                if len(command) == 2:
                     if command[1] == "'":
                         turns = -1
                     elif command[1] == "2":
                         turns = 2
                     else:
                         raise AlgorithmError("{} is not a valid move".format(command))
-                else:
+                elif len(command) == 1:
                     turns = 1
-                self.down(turns)
+                else:
+                    raise AlgorithmError("{} is not a valid move".format(command))
+                self.down(turns, command=False)
             elif command[0].upper() == "F":
-                if len(command) > 1:
+                if len(command) == 2:
                     if command[1] == "'":
                         turns = -1
                     elif command[1] == "2":
                         turns = 2
                     else:
                         raise AlgorithmError("{} is not a valid move".format(command))
-                else:
+                elif len(command) == 1:
                     turns = 1
-                self.front(turns)
+                else:
+                    raise AlgorithmError("{} is not a valid move".format(command))
+                self.front(turns, command=False)
             elif command[0].upper() == "B":
-                if len(command) > 1:
+                if len(command) == 2:
                     if command[1] == "'":
                         turns = -1
                     elif command[1] == "2":
                         turns = 2
                     else:
                         raise AlgorithmError("{} is not a valid move".format(command))
-                else:
+                elif len(command) == 1:
                     turns = 1
-                self.back(turns)
+                else:
+                    raise AlgorithmError("{} is not a valid move".format(command))
+                self.back(turns, command=False)
             elif command[0].upper() == "L":
-                if len(command) > 1:
+                if len(command) == 2:
                     if command[1] == "'":
                         turns = -1
                     elif command[1] == "2":
                         turns = 2
                     else:
                         raise AlgorithmError("{} is not a valid move".format(command))
-                else:
+                elif len(command) == 1:
                     turns = 1
-                self.left(turns)
+                else:
+                    raise AlgorithmError("{} is not a valid move".format(command))
+                self.left(turns, command=False)
             elif command[0].upper() == "R":
-                if len(command) > 1:
+                if len(command) == 2:
                     if command[1] == "'":
                         turns = -1
                     elif command[1] == "2":
                         turns = 2
                     else:
                         raise AlgorithmError("{} is not a valid move".format(command))
-                else:
+                elif len(command) == 1:
                     turns = 1
-                self.right(turns)
+                else:
+                    raise AlgorithmError("{} is not a valid move".format(command))
+                self.right(turns, command=False)
             else:
                 raise AlgorithmError("{} is not a valid move".format(command))
 
-    def up(self, turns=1):
+        if self.command != None:
+            self.command()
+
+    def up(self, turns=1, command=True):
         face = deepcopy(self.tiles[0][0])
         for n in range(3):
             if turns % 4 == 1:
@@ -154,8 +182,11 @@ class VirtualCube:
             self.tiles[2][0][0] = self.tiles[1][1][0][:]
             self.tiles[1][1][0] = self.tiles[2][1][0][:]
             self.tiles[2][1][0] = row
+
+        if self.command != None and command:
+            self.command()
             
-    def down(self, turns=1):
+    def down(self, turns=1, command=True):
         face = deepcopy(self.tiles[0][1])
         for n in range(3):
             if turns % 4 == 1:
@@ -185,7 +216,10 @@ class VirtualCube:
             self.tiles[1][1][2] = self.tiles[2][0][2][:]
             self.tiles[2][0][2] = row
 
-    def front(self, turns=1):
+        if self.command != None and command:
+            self.command()
+
+    def front(self, turns=1, command=True):
         face = deepcopy(self.tiles[1][0])
         for n in range(3):
             if turns % 4 == 1:
@@ -224,7 +258,10 @@ class VirtualCube:
             for n in range(3):
                 self.tiles[2][0][n] = [*self.tiles[2][0][n][0:2], row[2-n]]
 
-    def back(self, turns=1):
+        if self.command != None and command:
+            self.command()
+
+    def back(self, turns=1, command=True):
         face = deepcopy(self.tiles[1][1])
         for n in range(3):
             if turns % 4 == 1:
@@ -263,7 +300,10 @@ class VirtualCube:
             for n in range(3):
                 self.tiles[2][1][n] = [*self.tiles[2][1][n][0:2], row[n]]
 
-    def left(self, turns=1):
+        if self.command != None and command:
+            self.command()
+
+    def left(self, turns=1, command=True):
         face = deepcopy(self.tiles[2][0])
         for n in range(3):
             if turns % 4 == 1:
@@ -311,9 +351,12 @@ class VirtualCube:
                 self.tiles[0][1][n] = [self.tiles[1][1][n][2],
                                        *self.tiles[0][1][n][1:3]]
             for n in range(3):
-                self.tiles[1][1][n] = [*self.tiles[1][1][n][0:2], row[2-n]]
+                self.tiles[1][1][n] = [*self.tiles[1][1][n][0:2], row[2-n]]#
 
-    def right(self, turns=1):
+        if self.command != None and command:
+            self.command()
+
+    def right(self, turns=1, command=True):
         face = deepcopy(self.tiles[2][1])
         for n in range(3):
             if turns % 4 == 1:
@@ -362,6 +405,11 @@ class VirtualCube:
                                        self.tiles[1][0][2-n][2]]
             for n in range(3):
                 self.tiles[1][0][n] = [*self.tiles[1][0][n][0:2], row[n]]
+
+        if self.command != None and command:
+            self.command()
+
+# ----------------------------------- Test -----------------------------------
 
 if __name__ == "__main__":
     cube = VirtualCube()
