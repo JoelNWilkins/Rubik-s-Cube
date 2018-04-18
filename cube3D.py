@@ -3,9 +3,6 @@ import numpy as np
 from virtualCube import *
 
 class Cube3D(tk.Canvas):
-    colours = {"w": "#FFFFFF", "y": "#FFFF00", "r": "#FF0000",
-               "o": "#FFA500", "g": "#00A000", "b": "#0000FF"}
-    
     def __init__(self, parent, cube, *args, **kwargs):
         if "command" in kwargs.keys():
             self.command = kwargs.pop("command")
@@ -15,6 +12,11 @@ class Cube3D(tk.Canvas):
             self.invert = kwargs.pop("invert")
         else:
             self.invert = False
+        if "colours" in kwargs.keys():
+            self.colours = kwargs.pop("colours")
+        else:
+            self.colours = {"w": "#FFFFFF", "y": "#FFFF00", "r": "#FF0000",
+                            "o": "#FFA500", "g": "#00A000", "b": "#0000FF"}
             
         tk.Canvas.__init__(self, *args, master=parent, **kwargs)
         self.cube = cube
@@ -24,34 +26,14 @@ class Cube3D(tk.Canvas):
         self.master.bind("<Right>", self.callback)
         self.master.bind("<Up>", self.callback)
         self.master.bind("<Down>", self.callback)
+        self.bind("<Button-1>", self.press)
+        self.bind("<ButtonRelease-1>", self.release)
+        self.bind("<B1-Motion>", self.drag)
 
-        self.master.bind("<Button-1>", self.press)
-        self.master.bind("<ButtonRelease-1>", self.release)
-        self.master.bind("<B1-Motion>", self.drag)
-
-        self.ani = False
+        self._ani = False
         self.master.bind("<Control-a>", self.toggleAnimate)
         self.master.bind("<Control-r>", self.resetView)
-        
         self.resetView()
-
-    def press(self, event):
-        self.click = True
-        self.x = event.x
-        self.y = event.y
-
-    def release(self, event):
-        self.click = False
-
-    def drag(self, event):
-        if self.click:
-            self.phi += (event.y - self.y) / (7.5*self.winfo_height())
-            self.theta -= (event.x - self.x) / (7.5*self.winfo_width())
-
-        self.phi %= 2*np.pi
-        self.theta %= 2*np.pi
-
-        self.draw()
 
     def callback(self, event):
         if event.keysym == "Left":
@@ -83,7 +65,47 @@ class Cube3D(tk.Canvas):
         if self.command != None:
             self.command(event)
 
-    def transform(self, point, phi, theta):
+    def press(self, event):
+        self.click = True
+        self.x = event.x
+        self.y = event.y
+
+    def release(self, event):
+        self.click = False
+
+    def drag(self, event):
+        if self.click:
+            self.phi += (event.y - self.y) / (7.5*self.winfo_height())
+            self.theta -= (event.x - self.x) / (7.5*self.winfo_width())
+
+        self.phi %= 2*np.pi
+        self.theta %= 2*np.pi
+
+        self.draw()
+
+    def resetView(self, *args, **kwargs):
+        self.phi = np.pi/4
+        self.theta = np.pi/4
+        self.draw()
+
+    def toggleAnimate(self, *args, **kwargs):
+        self._ani = not self._ani
+        if self._ani:
+            self.animate()
+
+    def animate(self, *args, **kwargs):
+        if self._ani:
+            self.phi += np.pi/256
+            self.theta += np.pi/64
+
+            self.phi %= 2*np.pi
+            self.theta %= 2*np.pi
+            
+            self.draw()
+            
+            self.after(10, self.animate)
+
+    def _transform(self, point, phi, theta):
         alpha = np.arctan2(point[2], point[0])
         l = np.sqrt(point[0]**2 + point[2]**2)
         x = l * np.cos(alpha + theta)
@@ -110,18 +132,18 @@ class Cube3D(tk.Canvas):
         else:
             l = height/6
 
-        if (self.transform((0, -1, 0), self.phi, self.theta)[2]
-            < self.transform((0, 1, 0), self.phi, self.theta)[2]):
+        if (self._transform((0, -1, 0), self.phi, self.theta)[2]
+            < self._transform((0, 1, 0), self.phi, self.theta)[2]):
             for r in range(3):
                 for c in range(3):
-                    point1 = self.transform((l*(c-1.5), l*(-1.5), l*(r-1.5)),
-                                            self.phi, self.theta)
-                    point2 = self.transform((l*(c-1.5), l*(-1.5), l*(r-0.5)),
-                                            self.phi, self.theta)
-                    point3 = self.transform((l*(c-0.5), l*(-1.5), l*(r-0.5)),
-                                            self.phi, self.theta)
-                    point4 = self.transform((l*(c-0.5), l*(-1.5), l*(r-1.5)),
-                                            self.phi, self.theta)
+                    point1 = self._transform((l*(c-1.5), l*(-1.5), l*(r-1.5)),
+                                             self.phi, self.theta)
+                    point2 = self._transform((l*(c-1.5), l*(-1.5), l*(r-0.5)),
+                                             self.phi, self.theta)
+                    point3 = self._transform((l*(c-0.5), l*(-1.5), l*(r-0.5)),
+                                             self.phi, self.theta)
+                    point4 = self._transform((l*(c-0.5), l*(-1.5), l*(r-1.5)),
+                                             self.phi, self.theta)
                     points = [point1[0]+x, point1[1]+y,
                               point2[0]+x, point2[1]+y,
                               point3[0]+x, point3[1]+y,
@@ -132,14 +154,14 @@ class Cube3D(tk.Canvas):
         else:
             for r in range(3):
                 for c in range(3):
-                    point1 = self.transform((l*(c-1.5), l*1.5, l*(r-1.5)),
-                                            self.phi, self.theta)
-                    point2 = self.transform((l*(c-1.5), l*1.5, l*(r-0.5)),
-                                            self.phi, self.theta)
-                    point3 = self.transform((l*(c-0.5), l*1.5, l*(r-0.5)),
-                                            self.phi, self.theta)
-                    point4 = self.transform((l*(c-0.5), l*1.5, l*(r-1.5)),
-                                            self.phi, self.theta)
+                    point1 = self._transform((l*(c-1.5), l*1.5, l*(r-1.5)),
+                                             self.phi, self.theta)
+                    point2 = self._transform((l*(c-1.5), l*1.5, l*(r-0.5)),
+                                             self.phi, self.theta)
+                    point3 = self._transform((l*(c-0.5), l*1.5, l*(r-0.5)),
+                                             self.phi, self.theta)
+                    point4 = self._transform((l*(c-0.5), l*1.5, l*(r-1.5)),
+                                             self.phi, self.theta)
                     points = [point1[0]+x, point1[1]+y,
                               point2[0]+x, point2[1]+y,
                               point3[0]+x, point3[1]+y,
@@ -148,18 +170,18 @@ class Cube3D(tk.Canvas):
                     self.create_polygon(points, outline="black", fill=colour,
                                         width=2)
 
-        if (self.transform((0, 0, 1), self.phi, self.theta)[2]
-            < self.transform((0, 0, -1), self.phi, self.theta)[2]):
+        if (self._transform((0, 0, 1), self.phi, self.theta)[2]
+            < self._transform((0, 0, -1), self.phi, self.theta)[2]):
             for r in range(3):
                 for c in range(3):
-                    point1 = self.transform((l*(c-1.5), l*(r-1.5), l*1.5),
-                                            self.phi, self.theta)
-                    point2 = self.transform((l*(c-1.5), l*(r-0.5), l*1.5),
-                                            self.phi, self.theta)
-                    point3 = self.transform((l*(c-0.5), l*(r-0.5), l*1.5),
-                                            self.phi, self.theta)
-                    point4 = self.transform((l*(c-0.5), l*(r-1.5), l*1.5),
-                                            self.phi, self.theta)
+                    point1 = self._transform((l*(c-1.5), l*(r-1.5), l*1.5),
+                                             self.phi, self.theta)
+                    point2 = self._transform((l*(c-1.5), l*(r-0.5), l*1.5),
+                                             self.phi, self.theta)
+                    point3 = self._transform((l*(c-0.5), l*(r-0.5), l*1.5),
+                                             self.phi, self.theta)
+                    point4 = self._transform((l*(c-0.5), l*(r-1.5), l*1.5),
+                                             self.phi, self.theta)
                     points = [point1[0]+x, point1[1]+y,
                               point2[0]+x, point2[1]+y,
                               point3[0]+x, point3[1]+y,
@@ -170,14 +192,14 @@ class Cube3D(tk.Canvas):
         else:
             for r in range(3):
                 for c in range(3):
-                    point1 = self.transform((l*(1.5-c), l*(r-1.5), l*(-1.5)),
-                                            self.phi, self.theta)
-                    point2 = self.transform((l*(1.5-c), l*(r-0.5), l*(-1.5)),
-                                            self.phi, self.theta)
-                    point3 = self.transform((l*(0.5-c), l*(r-0.5), l*(-1.5)),
-                                            self.phi, self.theta)
-                    point4 = self.transform((l*(0.5-c), l*(r-1.5), l*(-1.5)),
-                                            self.phi, self.theta)
+                    point1 = self._transform((l*(1.5-c), l*(r-1.5), l*(-1.5)),
+                                             self.phi, self.theta)
+                    point2 = self._transform((l*(1.5-c), l*(r-0.5), l*(-1.5)),
+                                             self.phi, self.theta)
+                    point3 = self._transform((l*(0.5-c), l*(r-0.5), l*(-1.5)),
+                                             self.phi, self.theta)
+                    point4 = self._transform((l*(0.5-c), l*(r-1.5), l*(-1.5)),
+                                             self.phi, self.theta)
                     points = [point1[0]+x, point1[1]+y,
                               point2[0]+x, point2[1]+y,
                               point3[0]+x, point3[1]+y,
@@ -186,18 +208,18 @@ class Cube3D(tk.Canvas):
                     self.create_polygon(points, outline="black", fill=colour,
                                         width=2)
 
-        if (self.transform((-1, 0, 0), self.phi, self.theta)[2]
-            < self.transform((1, 0, 0), self.phi, self.theta)[2]):
+        if (self._transform((-1, 0, 0), self.phi, self.theta)[2]
+            < self._transform((1, 0, 0), self.phi, self.theta)[2]):
             for r in range(3):
                 for c in range(3):
-                    point1 = self.transform((l*(-1.5), l*(r-1.5), l*(c-1.5)),
-                                            self.phi, self.theta)
-                    point2 = self.transform((l*(-1.5), l*(r-1.5), l*(c-0.5)),
-                                            self.phi, self.theta)
-                    point3 = self.transform((l*(-1.5), l*(r-0.5), l*(c-0.5)),
-                                            self.phi, self.theta)
-                    point4 = self.transform((l*(-1.5), l*(r-0.5), l*(c-1.5)),
-                                            self.phi, self.theta)
+                    point1 = self._transform((l*(-1.5), l*(r-1.5), l*(c-1.5)),
+                                             self.phi, self.theta)
+                    point2 = self._transform((l*(-1.5), l*(r-1.5), l*(c-0.5)),
+                                             self.phi, self.theta)
+                    point3 = self._transform((l*(-1.5), l*(r-0.5), l*(c-0.5)),
+                                             self.phi, self.theta)
+                    point4 = self._transform((l*(-1.5), l*(r-0.5), l*(c-1.5)),
+                                             self.phi, self.theta)
                     points = [point1[0]+x, point1[1]+y,
                               point2[0]+x, point2[1]+y,
                               point3[0]+x, point3[1]+y,
@@ -208,14 +230,14 @@ class Cube3D(tk.Canvas):
         else:
             for r in range(3):
                 for c in range(3):
-                    point1 = self.transform((l*1.5, l*(r-1.5), l*(1.5-c)),
-                                            self.phi, self.theta)
-                    point2 = self.transform((l*1.5, l*(r-1.5), l*(0.5-c)),
-                                            self.phi, self.theta)
-                    point3 = self.transform((l*1.5, l*(r-0.5), l*(0.5-c)),
-                                            self.phi, self.theta)
-                    point4 = self.transform((l*1.5, l*(r-0.5), l*(1.5-c)),
-                                            self.phi, self.theta)
+                    point1 = self._transform((l*1.5, l*(r-1.5), l*(1.5-c)),
+                                             self.phi, self.theta)
+                    point2 = self._transform((l*1.5, l*(r-1.5), l*(0.5-c)),
+                                             self.phi, self.theta)
+                    point3 = self._transform((l*1.5, l*(r-0.5), l*(0.5-c)),
+                                             self.phi, self.theta)
+                    point4 = self._transform((l*1.5, l*(r-0.5), l*(1.5-c)),
+                                             self.phi, self.theta)
                     points = [point1[0]+x, point1[1]+y,
                               point2[0]+x, point2[1]+y,
                               point3[0]+x, point3[1]+y,
@@ -223,28 +245,6 @@ class Cube3D(tk.Canvas):
                     colour = self.colours[self.cube.tiles[2][1][r][c]]
                     self.create_polygon(points, outline="black", fill=colour,
                                         width=2)
-
-    def resetView(self, *args, **kwargs):
-        self.phi = np.pi/4
-        self.theta = np.pi/4
-        self.draw()
-
-    def toggleAnimate(self, *args, **kwargs):
-        self.ani = not self.ani
-        if self.ani:
-            self.animate()
-
-    def animate(self, *args, **kwargs):
-        if self.ani:
-            self.phi += np.pi/256
-            self.theta += np.pi/64
-
-            self.phi %= 2*np.pi
-            self.theta %= 2*np.pi
-            
-            self.draw()
-            
-            self.after(10, self.animate)
 
 # ----------------------------------- Test -----------------------------------
 

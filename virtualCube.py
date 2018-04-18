@@ -11,39 +11,42 @@ class VirtualCube:
         self.reset()
 
     def __str__(self, *args, **kwargs):
-        output = str("  "*3 + " ".join(self.tiles[1][1][2][::-1]) + "  "*3 + "\n"
-                     + "  "*3 + " ".join(self.tiles[1][1][1][::-1]) + "  "*3 + "\n"
-                     + "  "*3 + " ".join(self.tiles[1][1][0][::-1]) + "  "*3 + "\n"
-                     + " ".join(self._column(self.tiles[2][0][::-1], 0)) + " "
-                     + " ".join(self.tiles[0][0][0]) + " "
-                     + " ".join(self._column(self.tiles[2][1], 2)) + "\n"
-                     + " ".join(self._column(self.tiles[2][0][::-1], 1)) + " "
-                     + " ".join(self.tiles[0][0][1]) + " "
-                     + " ".join(self._column(self.tiles[2][1], 1)) + "\n"
-                     + " ".join(self._column(self.tiles[2][0][::-1], 2)) + " "
-                     + " ".join(self.tiles[0][0][2]) + " "
-                     + " ".join(self._column(self.tiles[2][1], 0)) + "\n"
-                     + "  "*3 + " ".join(self.tiles[1][0][0]) + "  "*3 + "\n"
-                     + "  "*3 + " ".join(self.tiles[1][0][1]) + "  "*3 + "\n"
-                     + "  "*3 + " ".join(self.tiles[1][0][2]) + "  "*3 + "\n"
-                     + "  "*3 + " ".join(self.tiles[0][1][2]) + "  "*3 + "\n"
-                     + "  "*3 + " ".join(self.tiles[0][1][1]) + "  "*3 + "\n"
-                     + "  "*3 + " ".join(self.tiles[0][1][0]) + "  "*3)
+        output = str("  "*3 + " ".join(self._tiles[1][1][2][::-1]) + "  "*3 + "\n"
+                     + "  "*3 + " ".join(self._tiles[1][1][1][::-1]) + "  "*3 + "\n"
+                     + "  "*3 + " ".join(self._tiles[1][1][0][::-1]) + "  "*3 + "\n"
+                     + " ".join(self._column(self._tiles[2][0][::-1], 0)) + " "
+                     + " ".join(self._tiles[0][0][0]) + " "
+                     + " ".join(self._column(self._tiles[2][1], 2)) + "\n"
+                     + " ".join(self._column(self._tiles[2][0][::-1], 1)) + " "
+                     + " ".join(self._tiles[0][0][1]) + " "
+                     + " ".join(self._column(self._tiles[2][1], 1)) + "\n"
+                     + " ".join(self._column(self._tiles[2][0][::-1], 2)) + " "
+                     + " ".join(self._tiles[0][0][2]) + " "
+                     + " ".join(self._column(self._tiles[2][1], 0)) + "\n"
+                     + "  "*3 + " ".join(self._tiles[1][0][0]) + "  "*3 + "\n"
+                     + "  "*3 + " ".join(self._tiles[1][0][1]) + "  "*3 + "\n"
+                     + "  "*3 + " ".join(self._tiles[1][0][2]) + "  "*3 + "\n"
+                     + "  "*3 + " ".join(self._tiles[0][1][2]) + "  "*3 + "\n"
+                     + "  "*3 + " ".join(self._tiles[0][1][1]) + "  "*3 + "\n"
+                     + "  "*3 + " ".join(self._tiles[0][1][0]) + "  "*3)
         return output
 
     def config(self, *args, **kwargs):
         if "command" in kwargs.keys():
-            self.command = kwargs.pop("command")
+            self._command = kwargs.pop("command")
         else:
-            self.command = None
+            self._command = None
+        if "colours" in kwargs.keys():
+            self._colours = kwargs.pop("colours")
+        else:
+            self._colours = [["w", "y"], ["r", "o"], ["g", "b"]]
 
     def reset(self, *args, **kwargs):
-        self.colours = [["w", "y"], ["r", "o"], ["g", "b"]]
-        self.tiles = list(map(lambda x: [[[x[0]]*3]*3, [[x[1]]*3]*3],
-                              self.colours))
+        self._tiles = list(map(lambda x: [[[x[0]]*3]*3, [[x[1]]*3]*3],
+                              self._colours))
 
-        if self.command != None:
-            self.command()
+        if self._command != None:
+            self._command()
 
     def scramble(self, *args, **kwargs):
         moves = ["U", "D", "F", "B", "L", "R"]
@@ -60,8 +63,12 @@ class VirtualCube:
             alg += move + var + " "
         self.algorithm(alg[0:len(alg)-1])
 
-        if self.command != None:
-            self.command()
+        if self._command != None:
+            self._command()
+
+    @property
+    def tiles(self, *args, **kwargs):
+        return deepcopy(self._tiles)
 
     def _column(self, array, i):
         return list(map(lambda x: x[i], array))
@@ -150,264 +157,264 @@ class VirtualCube:
             else:
                 raise AlgorithmError("{} is not a valid move".format(command))
 
-        if self.command != None:
-            self.command()
+        if self._command != None:
+            self._command()
 
     def up(self, turns=1, command=True):
-        face = deepcopy(self.tiles[0][0])
+        face = deepcopy(self._tiles[0][0])
         for n in range(3):
             if turns % 4 == 1:
-                self.tiles[0][0][n] = self._column(face[::-1], n)
+                self._tiles[0][0][n] = self._column(face[::-1], n)
             elif turns % 4 == 2:
-                self.tiles[0][0][n] = face[2-n][::-1]
+                self._tiles[0][0][n] = face[2-n][::-1]
             elif turns % 4 == 3:
-                self.tiles[0][0][n] = self._column(face, 2-n)
+                self._tiles[0][0][n] = self._column(face, 2-n)
 
         if turns % 4 == 1:
-            row = self.tiles[1][0][0][:]
-            self.tiles[1][0][0] = self.tiles[2][1][0][:]
-            self.tiles[2][1][0] = self.tiles[1][1][0][:]
-            self.tiles[1][1][0] = self.tiles[2][0][0][:]
-            self.tiles[2][0][0] = row
+            row = self._tiles[1][0][0][:]
+            self._tiles[1][0][0] = self._tiles[2][1][0][:]
+            self._tiles[2][1][0] = self._tiles[1][1][0][:]
+            self._tiles[1][1][0] = self._tiles[2][0][0][:]
+            self._tiles[2][0][0] = row
         elif turns % 4 == 2:
-            row = self.tiles[1][0][0][:]
-            self.tiles[1][0][0] = self.tiles[1][1][0][:]
-            self.tiles[1][1][0] = row
-            row = self.tiles[2][0][0][:]
-            self.tiles[2][0][0] = self.tiles[2][1][0][:]
-            self.tiles[2][1][0] = row
+            row = self._tiles[1][0][0][:]
+            self._tiles[1][0][0] = self._tiles[1][1][0][:]
+            self._tiles[1][1][0] = row
+            row = self._tiles[2][0][0][:]
+            self._tiles[2][0][0] = self._tiles[2][1][0][:]
+            self._tiles[2][1][0] = row
         elif turns % 4 == 3:
-            row = self.tiles[1][0][0][:]
-            self.tiles[1][0][0] = self.tiles[2][0][0][:]
-            self.tiles[2][0][0] = self.tiles[1][1][0][:]
-            self.tiles[1][1][0] = self.tiles[2][1][0][:]
-            self.tiles[2][1][0] = row
+            row = self._tiles[1][0][0][:]
+            self._tiles[1][0][0] = self._tiles[2][0][0][:]
+            self._tiles[2][0][0] = self._tiles[1][1][0][:]
+            self._tiles[1][1][0] = self._tiles[2][1][0][:]
+            self._tiles[2][1][0] = row
 
-        if self.command != None and command:
-            self.command()
+        if self._command != None and command:
+            self._command()
             
     def down(self, turns=1, command=True):
-        face = deepcopy(self.tiles[0][1])
+        face = deepcopy(self._tiles[0][1])
         for n in range(3):
             if turns % 4 == 1:
-                self.tiles[0][1][n] = self._column(face, 2-n)
+                self._tiles[0][1][n] = self._column(face, 2-n)
             elif turns % 4 == 2:
-                self.tiles[0][1][n] = face[2-n][::-1]
+                self._tiles[0][1][n] = face[2-n][::-1]
             elif turns % 4 == 3:
-                self.tiles[0][1][n] = self._column(face[::-1], n)
+                self._tiles[0][1][n] = self._column(face[::-1], n)
 
         if turns % 4 == 1:
-            row = self.tiles[1][0][2][:]
-            self.tiles[1][0][2] = self.tiles[2][0][2][:]
-            self.tiles[2][0][2] = self.tiles[1][1][2][:]
-            self.tiles[1][1][2] = self.tiles[2][1][2][:]
-            self.tiles[2][1][2] = row
+            row = self._tiles[1][0][2][:]
+            self._tiles[1][0][2] = self._tiles[2][0][2][:]
+            self._tiles[2][0][2] = self._tiles[1][1][2][:]
+            self._tiles[1][1][2] = self._tiles[2][1][2][:]
+            self._tiles[2][1][2] = row
         elif turns % 4 == 2:
-            row = self.tiles[1][0][2][:]
-            self.tiles[1][0][2] = self.tiles[1][1][2][:]
-            self.tiles[1][1][2] = row
-            row = self.tiles[2][0][2][:]
-            self.tiles[2][0][2] = self.tiles[2][1][2][:]
-            self.tiles[2][1][2] = row
+            row = self._tiles[1][0][2][:]
+            self._tiles[1][0][2] = self._tiles[1][1][2][:]
+            self._tiles[1][1][2] = row
+            row = self._tiles[2][0][2][:]
+            self._tiles[2][0][2] = self._tiles[2][1][2][:]
+            self._tiles[2][1][2] = row
         elif turns % 4 == 3:
-            row = self.tiles[1][0][2][:]
-            self.tiles[1][0][2] = self.tiles[2][1][2][:]
-            self.tiles[2][1][2] = self.tiles[1][1][2][:]
-            self.tiles[1][1][2] = self.tiles[2][0][2][:]
-            self.tiles[2][0][2] = row
+            row = self._tiles[1][0][2][:]
+            self._tiles[1][0][2] = self._tiles[2][1][2][:]
+            self._tiles[2][1][2] = self._tiles[1][1][2][:]
+            self._tiles[1][1][2] = self._tiles[2][0][2][:]
+            self._tiles[2][0][2] = row
 
-        if self.command != None and command:
-            self.command()
+        if self._command != None and command:
+            self._command()
 
     def front(self, turns=1, command=True):
-        face = deepcopy(self.tiles[1][0])
+        face = deepcopy(self._tiles[1][0])
         for n in range(3):
             if turns % 4 == 1:
-                self.tiles[1][0][n] = self._column(face[::-1], n)
+                self._tiles[1][0][n] = self._column(face[::-1], n)
             elif turns % 4 == 2:
-                self.tiles[1][0][n] = face[2-n][::-1]
+                self._tiles[1][0][n] = face[2-n][::-1]
             elif turns % 4 == 3:
-                self.tiles[1][0][n] = self._column(face, 2-n)
+                self._tiles[1][0][n] = self._column(face, 2-n)
 
         if turns % 4 == 1:
-            row = self.tiles[0][0][2][:]
-            self.tiles[0][0][2] = self._column(deepcopy(self.tiles[2][0]), 2)[::-1]
+            row = self._tiles[0][0][2][:]
+            self._tiles[0][0][2] = self._column(deepcopy(self._tiles[2][0]), 2)[::-1]
             for n in range(3):
-                self.tiles[2][0][n] = [*self.tiles[2][0][n][0:2],
-                                       self.tiles[0][1][2][n]]
-            self.tiles[0][1][2] = self._column(deepcopy(self.tiles[2][1]), 0)[::-1]
+                self._tiles[2][0][n] = [*self._tiles[2][0][n][0:2],
+                                        self._tiles[0][1][2][n]]
+            self._tiles[0][1][2] = self._column(deepcopy(self._tiles[2][1]), 0)[::-1]
             for n in range(3):
-                self.tiles[2][1][n] = [row[n], *self.tiles[2][1][n][1:3]]
+                self._tiles[2][1][n] = [row[n], *self._tiles[2][1][n][1:3]]
         elif turns % 4 == 2:
-            row = self.tiles[0][0][2][:]
-            self.tiles[0][0][2] = self.tiles[0][1][2][::-1]
-            self.tiles[0][1][2] = row[::-1]
-            row = self._column(self.tiles[2][0], 2)
+            row = self._tiles[0][0][2][:]
+            self._tiles[0][0][2] = self._tiles[0][1][2][::-1]
+            self._tiles[0][1][2] = row[::-1]
+            row = self._column(self._tiles[2][0], 2)
             for n in range(3):
-                self.tiles[2][0][n] = [*self.tiles[2][0][n][0:2],
-                                       self.tiles[2][1][2-n][0]]
+                self._tiles[2][0][n] = [*self._tiles[2][0][n][0:2],
+                                        self._tiles[2][1][2-n][0]]
             for n in range(3):
-                self.tiles[2][1][n] = [row[2-n], *self.tiles[2][1][n][1:3]]
+                self._tiles[2][1][n] = [row[2-n], *self._tiles[2][1][n][1:3]]
         elif turns % 4 == 3:
-            row = self.tiles[0][0][2][:]
-            self.tiles[0][0][2] = self._column(deepcopy(self.tiles[2][1]), 0)
+            row = self._tiles[0][0][2][:]
+            self._tiles[0][0][2] = self._column(deepcopy(self._tiles[2][1]), 0)
             for n in range(3):
-                self.tiles[2][1][n] = [self.tiles[0][1][2][2-n],
-                                       *self.tiles[2][1][n][1:3]]
-            self.tiles[0][1][2] = self._column(deepcopy(self.tiles[2][0]), 2)
+                self._tiles[2][1][n] = [self._tiles[0][1][2][2-n],
+                                        *self._tiles[2][1][n][1:3]]
+            self._tiles[0][1][2] = self._column(deepcopy(self._tiles[2][0]), 2)
             for n in range(3):
-                self.tiles[2][0][n] = [*self.tiles[2][0][n][0:2], row[2-n]]
+                self._tiles[2][0][n] = [*self._tiles[2][0][n][0:2], row[2-n]]
 
-        if self.command != None and command:
-            self.command()
+        if self._command != None and command:
+            self._command()
 
     def back(self, turns=1, command=True):
-        face = deepcopy(self.tiles[1][1])
+        face = deepcopy(self._tiles[1][1])
         for n in range(3):
             if turns % 4 == 1:
-                self.tiles[1][1][n] = self._column(face[::-1], n)
+                self._tiles[1][1][n] = self._column(face[::-1], n)
             elif turns % 4 == 2:
-                self.tiles[1][1][n] = face[2-n][::-1]
+                self._tiles[1][1][n] = face[2-n][::-1]
             elif turns % 4 == 3:
-                self.tiles[1][1][n] = self._column(face, 2-n)
+                self._tiles[1][1][n] = self._column(face, 2-n)
 
         if turns % 4 == 1:
-            row = self.tiles[0][0][0][:]
-            self.tiles[0][0][0] = self._column(deepcopy(self.tiles[2][1]), 2)
+            row = self._tiles[0][0][0][:]
+            self._tiles[0][0][0] = self._column(deepcopy(self._tiles[2][1]), 2)
             for n in range(3):
-                self.tiles[2][1][n] = [*self.tiles[2][1][n][0:2],
-                                       self.tiles[0][1][0][2-n]]
-            self.tiles[0][1][0] = self._column(deepcopy(self.tiles[2][0]), 0)
+                self._tiles[2][1][n] = [*self._tiles[2][1][n][0:2],
+                                        self._tiles[0][1][0][2-n]]
+            self._tiles[0][1][0] = self._column(deepcopy(self._tiles[2][0]), 0)
             for n in range(3):
-                self.tiles[2][0][n] = [row[2-n], *self.tiles[2][0][n][1:3]]
+                self._tiles[2][0][n] = [row[2-n], *self._tiles[2][0][n][1:3]]
         elif turns % 4 == 2:
-            row = self.tiles[0][0][0][:]
-            self.tiles[0][0][0] = self.tiles[0][1][0][::-1]
-            self.tiles[0][1][0] = row[::-1]
-            row = self._column(self.tiles[2][0], 0)
+            row = self._tiles[0][0][0][:]
+            self._tiles[0][0][0] = self._tiles[0][1][0][::-1]
+            self._tiles[0][1][0] = row[::-1]
+            row = self._column(self._tiles[2][0], 0)
             for n in range(3):
-                self.tiles[2][0][n] = [self.tiles[2][1][2-n][2],
-                                       *self.tiles[2][0][n][1:3]]
+                self._tiles[2][0][n] = [self._tiles[2][1][2-n][2],
+                                        *self._tiles[2][0][n][1:3]]
             for n in range(3):
-                self.tiles[2][1][n] = [*self.tiles[2][1][n][0:2], row[2-n]]
+                self._tiles[2][1][n] = [*self._tiles[2][1][n][0:2], row[2-n]]
         elif turns % 4 == 3:
-            row = self.tiles[0][0][0][:]
-            self.tiles[0][0][0] = self._column(deepcopy(self.tiles[2][0]), 0)[::-1]
+            row = self._tiles[0][0][0][:]
+            self._tiles[0][0][0] = self._column(deepcopy(self._tiles[2][0]), 0)[::-1]
             for n in range(3):
-                self.tiles[2][0][n] = [self.tiles[0][1][0][n],
-                                       *self.tiles[2][0][n][1:3]]
-            self.tiles[0][1][0] = self._column(deepcopy(self.tiles[2][1]), 2)[::-1]
+                self._tiles[2][0][n] = [self._tiles[0][1][0][n],
+                                        *self._tiles[2][0][n][1:3]]
+            self._tiles[0][1][0] = self._column(deepcopy(self._tiles[2][1]), 2)[::-1]
             for n in range(3):
-                self.tiles[2][1][n] = [*self.tiles[2][1][n][0:2], row[n]]
+                self._tiles[2][1][n] = [*self._tiles[2][1][n][0:2], row[n]]
 
-        if self.command != None and command:
-            self.command()
+        if self._command != None and command:
+            self._command()
 
     def left(self, turns=1, command=True):
-        face = deepcopy(self.tiles[2][0])
+        face = deepcopy(self._tiles[2][0])
         for n in range(3):
             if turns % 4 == 1:
-                self.tiles[2][0][n] = self._column(face[::-1], n)
+                self._tiles[2][0][n] = self._column(face[::-1], n)
             elif turns % 4 == 2:
-                self.tiles[2][0][n] = face[2-n][::-1]
+                self._tiles[2][0][n] = face[2-n][::-1]
             elif turns % 4 == 3:
-                self.tiles[2][0][n] = self._column(face, 2-n)
+                self._tiles[2][0][n] = self._column(face, 2-n)
 
         if turns % 4 == 1:
-            row = self._column(deepcopy(self.tiles[0][0]), 0)
+            row = self._column(deepcopy(self._tiles[0][0]), 0)
             for n in range(3):
-                self.tiles[0][0][n] = [self.tiles[1][1][2-n][2],
-                                       *self.tiles[0][0][n][1:3]]
+                self._tiles[0][0][n] = [self._tiles[1][1][2-n][2],
+                                        *self._tiles[0][0][n][1:3]]
             for n in range(3):
-                self.tiles[1][1][n] = [*self.tiles[1][1][n][0:2],
-                                       self.tiles[0][1][n][0]]
+                self._tiles[1][1][n] = [*self._tiles[1][1][n][0:2],
+                                        self._tiles[0][1][n][0]]
             for n in range(3):
-                self.tiles[0][1][n] = [self.tiles[1][0][2-n][0],
-                                       *self.tiles[0][1][n][1:3]]
+                self._tiles[0][1][n] = [self._tiles[1][0][2-n][0],
+                                        *self._tiles[0][1][n][1:3]]
             for n in range(3):
-                self.tiles[1][0][n] = [row[n], *self.tiles[1][0][n][1:3]]
+                self._tiles[1][0][n] = [row[n], *self._tiles[1][0][n][1:3]]
         elif turns % 4 == 2:
-            row = self._column(deepcopy(self.tiles[0][0]), 0)
+            row = self._column(deepcopy(self._tiles[0][0]), 0)
             for n in range(3):
-                self.tiles[0][0][n] = [self.tiles[0][1][2-n][0],
-                                       *self.tiles[0][0][n][1:3]]
+                self._tiles[0][0][n] = [self._tiles[0][1][2-n][0],
+                                        *self._tiles[0][0][n][1:3]]
             for n in range(3):
-                self.tiles[0][1][n] = [row[2-n], *self.tiles[0][1][n][1:3]]
-            row = self._column(deepcopy(self.tiles[1][0]), 0)
+                self._tiles[0][1][n] = [row[2-n], *self._tiles[0][1][n][1:3]]
+            row = self._column(deepcopy(self._tiles[1][0]), 0)
             for n in range(3):
-                self.tiles[1][0][n] = [self.tiles[1][1][2-n][2],
-                                       *self.tiles[1][0][n][1:3]]
+                self._tiles[1][0][n] = [self._tiles[1][1][2-n][2],
+                                        *self._tiles[1][0][n][1:3]]
             for n in range(3):
-                self.tiles[1][1][n] = [*self.tiles[1][1][n][0:2], row[2-n]]
+                self._tiles[1][1][n] = [*self._tiles[1][1][n][0:2], row[2-n]]
         elif turns % 4 == 3:
-            row = self._column(deepcopy(self.tiles[0][0]), 0)
+            row = self._column(deepcopy(self._tiles[0][0]), 0)
             for n in range(3):
-                self.tiles[0][0][n] = [self.tiles[1][0][n][0],
-                                       *self.tiles[0][0][n][1:3]]
+                self._tiles[0][0][n] = [self._tiles[1][0][n][0],
+                                        *self._tiles[0][0][n][1:3]]
             for n in range(3):
-                self.tiles[1][0][n] = [self.tiles[0][1][2-n][0],
-                                       *self.tiles[1][0][n][1:3]]
+                self._tiles[1][0][n] = [self._tiles[0][1][2-n][0],
+                                       *self._tiles[1][0][n][1:3]]
             for n in range(3):
-                self.tiles[0][1][n] = [self.tiles[1][1][n][2],
-                                       *self.tiles[0][1][n][1:3]]
+                self._tiles[0][1][n] = [self._tiles[1][1][n][2],
+                                        *self._tiles[0][1][n][1:3]]
             for n in range(3):
-                self.tiles[1][1][n] = [*self.tiles[1][1][n][0:2], row[2-n]]#
+                self._tiles[1][1][n] = [*self._tiles[1][1][n][0:2], row[2-n]]#
 
-        if self.command != None and command:
-            self.command()
+        if self._command != None and command:
+            self._command()
 
     def right(self, turns=1, command=True):
-        face = deepcopy(self.tiles[2][1])
+        face = deepcopy(self._tiles[2][1])
         for n in range(3):
             if turns % 4 == 1:
-                self.tiles[2][1][n] = self._column(face[::-1], n)
+                self._tiles[2][1][n] = self._column(face[::-1], n)
             elif turns % 4 == 2:
-                self.tiles[2][1][n] = face[2-n][::-1]
+                self._tiles[2][1][n] = face[2-n][::-1]
             elif turns % 4 == 3:
-                self.tiles[2][1][n] = self._column(face, 2-n)
+                self._tiles[2][1][n] = self._column(face, 2-n)
 
         if turns % 4 == 1:
-            row = self._column(deepcopy(self.tiles[0][0]), 2)
+            row = self._column(deepcopy(self._tiles[0][0]), 2)
             for n in range(3):
-                self.tiles[0][0][n] = [*self.tiles[0][0][n][0:2],
-                                       self.tiles[1][0][n][2]]
+                self._tiles[0][0][n] = [*self._tiles[0][0][n][0:2],
+                                        self._tiles[1][0][n][2]]
             for n in range(3):
-                self.tiles[1][0][n] = [*self.tiles[1][0][n][0:2],
-                                       self.tiles[0][1][2-n][2]]
+                self._tiles[1][0][n] = [*self._tiles[1][0][n][0:2],
+                                        self._tiles[0][1][2-n][2]]
             for n in range(3):
-                self.tiles[0][1][n] = [*self.tiles[0][1][n][0:2],
-                                       self.tiles[1][1][n][0]]
+                self._tiles[0][1][n] = [*self._tiles[0][1][n][0:2],
+                                        self._tiles[1][1][n][0]]
             for n in range(3):
-                self.tiles[1][1][n] = [row[2-n], *self.tiles[1][1][n][1:3]]
+                self._tiles[1][1][n] = [row[2-n], *self._tiles[1][1][n][1:3]]
         elif turns % 4 == 2:
-            row = self._column(deepcopy(self.tiles[0][0]), 2)
+            row = self._column(deepcopy(self._tiles[0][0]), 2)
             for n in range(3):
-                self.tiles[0][0][n] = [*self.tiles[0][0][n][0:2],
-                                       self.tiles[0][1][2-n][2]]
+                self._tiles[0][0][n] = [*self._tiles[0][0][n][0:2],
+                                        self._tiles[0][1][2-n][2]]
             for n in range(3):
-                self.tiles[0][1][n] = [*self.tiles[0][1][n][0:2], row[2-n]]
-            row = self._column(deepcopy(self.tiles[1][0]), 2)
+                self._tiles[0][1][n] = [*self._tiles[0][1][n][0:2], row[2-n]]
+            row = self._column(deepcopy(self._tiles[1][0]), 2)
             for n in range(3):
-                self.tiles[1][0][n] = [*self.tiles[1][0][n][0:2],
-                                       self.tiles[1][1][2-n][0]]
+                self._tiles[1][0][n] = [*self._tiles[1][0][n][0:2],
+                                        self._tiles[1][1][2-n][0]]
             for n in range(3):
-                self.tiles[1][1][n] = [row[2-n], *self.tiles[1][1][n][1:3]]
+                self._tiles[1][1][n] = [row[2-n], *self._tiles[1][1][n][1:3]]
         elif turns % 4 == 3:
-            row = self._column(deepcopy(self.tiles[0][0]), 2)
+            row = self._column(deepcopy(self._tiles[0][0]), 2)
             for n in range(3):
-                self.tiles[0][0][n] = [*self.tiles[0][0][n][0:2],
-                                       self.tiles[1][1][2-n][0]]
+                self._tiles[0][0][n] = [*self._tiles[0][0][n][0:2],
+                                        self._tiles[1][1][2-n][0]]
             for n in range(3):
-                self.tiles[1][1][n] = [self.tiles[0][1][n][2],
-                                       *self.tiles[1][1][n][1:3]]
+                self._tiles[1][1][n] = [self._tiles[0][1][n][2],
+                                        *self._tiles[1][1][n][1:3]]
             for n in range(3):
-                self.tiles[0][1][n] = [*self.tiles[0][1][n][0:2],
-                                       self.tiles[1][0][2-n][2]]
+                self._tiles[0][1][n] = [*self._tiles[0][1][n][0:2],
+                                        self._tiles[1][0][2-n][2]]
             for n in range(3):
-                self.tiles[1][0][n] = [*self.tiles[1][0][n][0:2], row[n]]
+                self._tiles[1][0][n] = [*self._tiles[1][0][n][0:2], row[n]]
 
-        if self.command != None and command:
-            self.command()
+        if self._command != None and command:
+            self._command()
 
 # ----------------------------------- Test -----------------------------------
 
