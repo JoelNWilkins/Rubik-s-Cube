@@ -1,4 +1,5 @@
 import tkinter as tk
+from PIL import Image, ImageDraw
 from virtualCube import *
 
 class Net(tk.Canvas):
@@ -16,10 +17,24 @@ class Net(tk.Canvas):
         self.draw()
 
     def draw(self, *args, **kwargs):
-        self.delete("all")
-        
-        width = self.winfo_width()
-        height = self.winfo_height()
+        if "filename" in kwargs.keys():
+            filename = kwargs.pop("filename")
+        else:
+            filename = ""
+        if "width" in kwargs.keys():
+            width = kwargs.pop("width")
+        else:
+            width = self.winfo_width()
+        if "height" in kwargs.keys():
+            height = kwargs.pop("height")
+        else:
+            height = self.winfo_height()
+
+        if filename != "":
+            image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(image)
+        else:
+            self.delete("all")
 
         x = width/2
         y = height/2
@@ -38,48 +53,87 @@ class Net(tk.Canvas):
                           l*(0.5-c)+x, l*(r-5)+y,
                           l*(1.5-c)+x, l*(r-5)+y]
                 colour = self.colours[self.cube.tiles[1][1][2-r][c]]
-                self.create_polygon(points, outline="black", fill=colour,
-                                    width=2)
+
+                if filename != "":
+                    draw.polygon(points, outline="black", fill=colour)
+                    draw.line([*points, *points[0:2]], fill="black",
+                              width=2)
+                else:
+                    self.create_polygon(points, outline="black",
+                                        fill=colour, width=2)
 
                 points = [l*(c-4.5)+x, l*(r-3)+y,
                           l*(c-3.5)+x, l*(r-3)+y,
                           l*(c-3.5)+x, l*(r-2)+y,
                           l*(c-4.5)+x, l*(r-2)+y]
                 colour = self.colours[self.cube.tiles[2][0][2-c][r]]
-                self.create_polygon(points, outline="black", fill=colour,
-                                    width=2)
+
+                if filename != "":
+                    draw.polygon(points, outline="black", fill=colour)
+                    draw.line([*points, *points[0:2]], fill="black",
+                              width=2)
+                else:
+                    self.create_polygon(points, outline="black",
+                                        fill=colour, width=2)
 
                 points = [l*(c-1.5)+x, l*(r-3)+y,
                           l*(c-0.5)+x, l*(r-3)+y,
                           l*(c-0.5)+x, l*(r-2)+y,
                           l*(c-1.5)+x, l*(r-2)+y]
                 colour = self.colours[self.cube.tiles[0][0][r][c]]
-                self.create_polygon(points, outline="black", fill=colour,
-                                    width=2)
+
+                if filename != "":
+                    draw.polygon(points, outline="black", fill=colour)
+                    draw.line([*points, *points[0:2]], fill="black",
+                              width=2)
+                else:
+                    self.create_polygon(points, outline="black",
+                                        fill=colour, width=2)
 
                 points = [l*(c+1.5)+x, l*(r-3)+y,
                           l*(c+2.5)+x, l*(r-3)+y,
                           l*(c+2.5)+x, l*(r-2)+y,
                           l*(c+1.5)+x, l*(r-2)+y]
                 colour = self.colours[self.cube.tiles[2][1][c][2-r]]
-                self.create_polygon(points, outline="black", fill=colour,
-                                    width=2)
+
+                if filename != "":
+                    draw.polygon(points, outline="black", fill=colour)
+                    draw.line([*points, *points[0:2]], fill="black",
+                              width=2)
+                else:
+                    self.create_polygon(points, outline="black",
+                                        fill=colour, width=2)
 
                 points = [l*(c-1.5)+x, l*r+y,
                           l*(c-0.5)+x, l*r+y,
                           l*(c-0.5)+x, l*(r+1)+y,
                           l*(c-1.5)+x, l*(r+1)+y]
                 colour = self.colours[self.cube.tiles[1][0][r][c]]
-                self.create_polygon(points, outline="black", fill=colour,
-                                    width=2)
+
+                if filename != "":
+                    draw.polygon(points, outline="black", fill=colour)
+                    draw.line([*points, *points[0:2]], fill="black",
+                              width=2)
+                else:
+                    self.create_polygon(points, outline="black",
+                                        fill=colour, width=2)
 
                 points = [l*(c-1.5)+x, l*(r+3)+y,
                           l*(c-0.5)+x, l*(r+3)+y,
                           l*(c-0.5)+x, l*(r+4)+y,
                           l*(c-1.5)+x, l*(r+4)+y]
                 colour = self.colours[self.cube.tiles[0][1][2-r][c]]
-                self.create_polygon(points, outline="black", fill=colour,
-                                    width=2)
+
+                if filename != "":
+                    draw.polygon(points, outline="black", fill=colour)
+                    draw.line([*points, *points[0:2]], fill="black",
+                              width=2)
+                else:
+                    self.create_polygon(points, outline="black",
+                                        fill=colour, width=2)
+
+        if filename != "":
+            image.save(filename)
 
 # ----------------------------------- Test -----------------------------------
 

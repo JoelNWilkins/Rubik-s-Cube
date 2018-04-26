@@ -1,5 +1,6 @@
 import tkinter as tk
 import numpy as np
+from PIL import Image, ImageDraw
 from virtualCube import *
 
 class Cube3D(tk.Canvas):
@@ -17,6 +18,17 @@ class Cube3D(tk.Canvas):
         else:
             self.colours = {"w": "#FFFFFF", "y": "#FFFF00", "r": "#FF0000",
                             "o": "#FFA500", "g": "#00A000", "b": "#0000FF"}
+        if "phi" in kwargs.keys():
+            self._phi = kwargs.pop("phi")
+        else:
+            self._phi = np.pi/4
+        if "theta" in kwargs.keys():
+            self._theta = kwargs.pop("theta")
+        else:
+            self._theta = np.pi/4
+
+        self.phi = self._phi
+        self.theta = self._theta
             
         tk.Canvas.__init__(self, *args, master=parent, **kwargs)
         self.cube = cube
@@ -33,7 +45,7 @@ class Cube3D(tk.Canvas):
         self._ani = False
         self.master.bind("<Control-a>", self.toggleAnimate)
         self.master.bind("<Control-r>", self.resetView)
-        self.resetView()
+        self.draw()
 
     def callback(self, event):
         if event.keysym == "Left":
@@ -84,8 +96,8 @@ class Cube3D(tk.Canvas):
         self.draw()
 
     def resetView(self, *args, **kwargs):
-        self.phi = np.pi/4
-        self.theta = np.pi/4
+        self.phi = self._phi
+        self.theta = self._theta
         self.draw()
 
     def toggleAnimate(self, *args, **kwargs):
@@ -119,10 +131,24 @@ class Cube3D(tk.Canvas):
         return (round(x, 10), round(y, 10), round(z, 10))
 
     def draw(self, *args, **kwargs):
-        self.delete("all")
+        if "filename" in kwargs.keys():
+            filename = kwargs.pop("filename")
+        else:
+            filename = ""
+        if "width" in kwargs.keys():
+            width = kwargs.pop("width")
+        else:
+            width = self.winfo_width()
+        if "height" in kwargs.keys():
+            height = kwargs.pop("height")
+        else:
+            height = self.winfo_height()
 
-        width = self.winfo_width()
-        height = self.winfo_height()
+        if filename != "":
+            image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(image)
+        else:
+            self.delete("all")
         
         x = width/2
         y = height/2
@@ -149,8 +175,14 @@ class Cube3D(tk.Canvas):
                               point3[0]+x, point3[1]+y,
                               point4[0]+x, point4[1]+y]
                     colour = self.colours[self.cube.tiles[0][0][r][c]]
-                    self.create_polygon(points, outline="black", fill=colour,
-                                        width=2)
+
+                    if filename != "":
+                        draw.polygon(points, outline="black", fill=colour)
+                        draw.line([*points, *points[0:2]], fill="black",
+                                  width=2)
+                    else:
+                        self.create_polygon(points, outline="black",
+                                            fill=colour, width=2)
         else:
             for r in range(3):
                 for c in range(3):
@@ -167,8 +199,14 @@ class Cube3D(tk.Canvas):
                               point3[0]+x, point3[1]+y,
                               point4[0]+x, point4[1]+y]
                     colour = self.colours[self.cube.tiles[0][1][r][c]]
-                    self.create_polygon(points, outline="black", fill=colour,
-                                        width=2)
+
+                    if filename != "":
+                        draw.polygon(points, outline="black", fill=colour)
+                        draw.line([*points, *points[0:2]], fill="black",
+                                  width=2)
+                    else:
+                        self.create_polygon(points, outline="black",
+                                            fill=colour, width=2)
 
         if (self._transform((0, 0, 1), self.phi, self.theta)[2]
             < self._transform((0, 0, -1), self.phi, self.theta)[2]):
@@ -187,8 +225,14 @@ class Cube3D(tk.Canvas):
                               point3[0]+x, point3[1]+y,
                               point4[0]+x, point4[1]+y]
                     colour = self.colours[self.cube.tiles[1][0][r][c]]
-                    self.create_polygon(points, outline="black", fill=colour,
-                                        width=2)
+
+                    if filename != "":
+                        draw.polygon(points, outline="black", fill=colour)
+                        draw.line([*points, *points[0:2]], fill="black",
+                                  width=2)
+                    else:
+                        self.create_polygon(points, outline="black",
+                                            fill=colour, width=2)
         else:
             for r in range(3):
                 for c in range(3):
@@ -205,8 +249,14 @@ class Cube3D(tk.Canvas):
                               point3[0]+x, point3[1]+y,
                               point4[0]+x, point4[1]+y]
                     colour = self.colours[self.cube.tiles[1][1][r][c]]
-                    self.create_polygon(points, outline="black", fill=colour,
-                                        width=2)
+
+                    if filename != "":
+                        draw.polygon(points, outline="black", fill=colour)
+                        draw.line([*points, *points[0:2]], fill="black",
+                                  width=2)
+                    else:
+                        self.create_polygon(points, outline="black",
+                                            fill=colour, width=2)
 
         if (self._transform((-1, 0, 0), self.phi, self.theta)[2]
             < self._transform((1, 0, 0), self.phi, self.theta)[2]):
@@ -225,8 +275,14 @@ class Cube3D(tk.Canvas):
                               point3[0]+x, point3[1]+y,
                               point4[0]+x, point4[1]+y]
                     colour = self.colours[self.cube.tiles[2][0][r][c]]
-                    self.create_polygon(points, outline="black", fill=colour,
-                                        width=2)
+
+                    if filename != "":
+                        draw.polygon(points, outline="black", fill=colour)
+                        draw.line([*points, *points[0:2]], fill="black",
+                                  width=2)
+                    else:
+                        self.create_polygon(points, outline="black",
+                                            fill=colour, width=2)
         else:
             for r in range(3):
                 for c in range(3):
@@ -243,8 +299,17 @@ class Cube3D(tk.Canvas):
                               point3[0]+x, point3[1]+y,
                               point4[0]+x, point4[1]+y]
                     colour = self.colours[self.cube.tiles[2][1][r][c]]
-                    self.create_polygon(points, outline="black", fill=colour,
-                                        width=2)
+
+                    if filename != "":
+                        draw.polygon(points, outline="black", fill=colour)
+                        draw.line([*points, *points[0:2]], fill="black",
+                                  width=2)
+                    else:
+                        self.create_polygon(points, outline="black",
+                                            fill=colour, width=2)
+
+        if filename != "":
+            image.save(filename)
 
 # ----------------------------------- Test -----------------------------------
 
@@ -271,7 +336,7 @@ if __name__ == "__main__":
     root.columnconfigure(0, weight=1)
 
     cube = VirtualCube()
-    cube3D = Cube3D(root, cube)
+    cube3D = Cube3D(root, cube, phi=np.pi/12, theta=np.pi/6)
     cube.config(command=cube3D.draw)
     cube3D.grid(row=0, column=0, sticky="nsew")
 

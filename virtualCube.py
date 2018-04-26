@@ -70,6 +70,10 @@ class VirtualCube:
     def tiles(self, *args, **kwargs):
         return deepcopy(self._tiles)
 
+    @tiles.setter
+    def tiles(self, data):
+        self._tiles = data
+
     def _column(self, array, i):
         return list(map(lambda x: x[i], array))
 
