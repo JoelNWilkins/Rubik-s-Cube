@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
-import pickle
 from virtualCube import *
 from cube3D import *
 from net import *
@@ -9,6 +8,9 @@ from net import *
 class CubeInterface(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
+        self.title("Untitled - Rubik's Cube Simulator")
+        self.wm_iconbitmap("images/logo.ico")
+            
         self.cube = VirtualCube()
 
         self.frame = tk.Frame(self, padx=2, pady=2)
@@ -69,31 +71,54 @@ class CubeInterface(tk.Tk):
                 raise
         self.entry.delete(0, tk.END)
 
+    def newFile(self, *args, **kwargs):
+        self.cube.reset()
+        self.draw()
+        
+        title = "Untitled - " + self.title().split(" - ")[1]
+        self.title(title)
+
     def openFile(self, *args, **kwargs):
         if "filename" in kwargs.keys():
             filename = kwargs.pop("filename")
         else:
-            filename = askopenfilename(parent=self,
+            filename = askopenfilename(parent=self, initialdir="data",
                                        filetypes=[("Rubik's Cube", "*.cube")],
                                        defaultextension=".cube")
 
         if filename != "":
-            with open(filename, "rb") as f:
-                self.cube.tiles = pickle.load(f)
+            self.cube.load(filename)
 
             self.draw()
+
+            title = self.title().split(" - ")[1]
+            if "\\" in filename:
+                title = "{} - {}".format(
+                    filename.split("\\")[-1].replace(".cube", ""), title)
+            else:
+                title = "{} - {}".format(
+                    filename.split("/")[-1].replace(".cube", ""), title)
+            self.title(title)
 
     def saveAsFile(self, *args, **kwargs):
         if "filename" in kwargs.keys():
             filename = kwargs.pop("filename")
         else:
-            filename = asksaveasfilename(parent=self,
+            filename = asksaveasfilename(parent=self, initialdir="data",
                                          filetypes=[("Rubik's Cube", "*.cube")],
                                          defaultextension=".cube")
         
         if filename != "":
-            with open(filename, "wb") as f:
-                pickle.dump(self.cube.tiles, f)
+            self.cube.dump(filename)
+
+            title = self.title().split(" - ")[1]
+            if "\\" in filename:
+                title = "{} - {}".format(
+                    filename.split("\\")[-1].replace(".cube", ""), title)
+            else:
+                title = "{} - {}".format(
+                    filename.split("/")[-1].replace(".cube", ""), title)
+            self.title(title)
 
     def export3DCubeAsImage(self, *args, **kwargs):
         if "filename" in kwargs.keys():
@@ -119,6 +144,18 @@ class CubeInterface(tk.Tk):
         if filename != "":
             self.net.draw(filename=filename)
 
+    def scramble(self, *args, **kwargs):
+        self.cube.scramble()
+
+    def reset(self, *args, **kwargs):
+        self.cube.reset()
+
+    def resetView(self, *args, **kwargs):
+        self.cube3D.resetView()
+
+    def toggleAnimate(self, *args, **kwargs):
+        self.cube3D.toggleAnimate()
+
 class Menubar(tk.Menu):
     def __init__(self, parent, *args, **kwargs):
         tk.Menu.__init__(self, *args, master=parent, **kwargs)
@@ -131,6 +168,8 @@ class Menubar(tk.Menu):
                                     command=self.master.exportNetAsImage)
 
         self.filemenu = tk.Menu(self, tearoff=False)
+        self.filemenu.add_command(label="New File", command=self.master.newFile,
+                                  accelerator="Ctrl+N")
         self.filemenu.add_command(label="Open...",
                                   command=self.master.openFile,
                                   accelerator="Ctrl+O")
@@ -140,6 +179,17 @@ class Menubar(tk.Menu):
         self.filemenu.add_cascade(label="Export As...", menu=self.exportmenu)
         self.add_cascade(label="File", menu=self.filemenu)
 
+        self.optionsmenu = tk.Menu(self, tearoff=False)
+        self.optionsmenu.add_command(label="Scramble",
+                                     command=self.master.scramble)
+        self.optionsmenu.add_command(label="Reset", command=self.master.reset)
+        self.optionsmenu.add_command(label="Reset View", accelerator="Ctrl+R",
+                                     command=self.master.resetView)
+        self.optionsmenu.add_command(label="Animation", accelerator="Ctrl+A",
+                                     command=self.master.toggleAnimate)
+        self.add_cascade(label="Options", menu=self.optionsmenu)
+
+        self.master.bind("<Control-n>", self.master.newFile)
         self.master.bind("<Control-o>", self.master.openFile)
         self.master.bind("<Control-s>", self.master.saveAsFile)
 
@@ -147,7 +197,7 @@ class Menubar(tk.Menu):
 
 if __name__ == "__main__":
     root = CubeInterface()
-    root.title("Cube Interface")
+    root.state("zoomed")
 
     menubar = Menubar(root)
     

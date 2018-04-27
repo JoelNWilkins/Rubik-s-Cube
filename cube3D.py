@@ -331,6 +331,7 @@ if __name__ == "__main__":
 
     root = tk.Tk()
     root.title("3D Cube")
+    root.wm_iconbitmap("images/logo.ico")
 
     root.rowconfigure(0, weight=1)
     root.columnconfigure(0, weight=1)

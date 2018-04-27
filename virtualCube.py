@@ -1,4 +1,5 @@
 import random
+import pickle
 from copy import deepcopy
 
 class AlgorithmError(Exception):
@@ -7,6 +8,7 @@ class AlgorithmError(Exception):
 
 class VirtualCube:
     def __init__(self, *args, **kwargs):
+        self._log = ""
         self.config(*args, **kwargs)
         self.reset()
 
@@ -44,6 +46,7 @@ class VirtualCube:
     def reset(self, *args, **kwargs):
         self._tiles = list(map(lambda x: [[[x[0]]*3]*3, [[x[1]]*3]*3],
                               self._colours))
+        self._log = ""
 
         if self._command != None:
             self._command()
@@ -66,13 +69,20 @@ class VirtualCube:
         if self._command != None:
             self._command()
 
+    def load(self, filename, *args, **kwargs):
+        with open(filename, "rb") as f:
+            self._tiles, self._log = pickle.load(f)
+
+        if self._command != None:
+            self._command()
+
+    def dump(self, filename, *args, **kwargs):
+        with open(filename, "wb") as f:
+            pickle.dump([self._tiles, self._log], f)
+
     @property
     def tiles(self, *args, **kwargs):
         return deepcopy(self._tiles)
-
-    @tiles.setter
-    def tiles(self, data):
-        self._tiles = data
 
     def _column(self, array, i):
         return list(map(lambda x: x[i], array))
@@ -161,6 +171,8 @@ class VirtualCube:
             else:
                 raise AlgorithmError("{} is not a valid move".format(command))
 
+        self._log += " "+alg
+                
         if self._command != None:
             self._command()
 
